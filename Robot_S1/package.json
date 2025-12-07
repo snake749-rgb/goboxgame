@@ -1,0 +1,35 @@
+{
+  "name": "robot_s1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint:fix": "eslint --fix",
+    "prettier:write": "prettier . --write",
+    "prettier:check": "prettier . --check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/dotenv-webpack": "^7.0.8",
+    "acorn": "^8.15.0",
+    "dotenv-webpack": "^8.1.1",
+    "eslint": "^9.39.1",
+    "i18next": "^25.7.1",
+    "prettier": "^3.7.3",
+    "terser-webpack-plugin": "^5.3.14",
+    "ts-loader": "^9.5.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@formatjs/intl-numberformat": "^8.15.6",
+    "@formatjs/intl-pluralrules": "^5.4.6",
+    "intl": "^1.2.5"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "welcome_game": "欢迎来到神奇代码岛！",
+  "welcome_ap": "欢迎使用ArenaPro！",
+  "navigator": {
+    "language": "你的浏览器使用语言是：{{language}}"
+  },
+  "boxes_collected": {
+    "num":"已收集箱子： {{num}}"
+  },
+  "box_picked": {
+    "colorA":"捡起了一个绿色箱子！",
+    "colorB":"捡起了一个红色箱子！"
+  },
+  "wrong_type":"类型错误！",
+  "right_type":"成功分拣了一个箱子,获得了1分！"
+}
