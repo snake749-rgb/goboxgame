@@ -4,13 +4,16 @@
   "navigator": {
     "language": "You are using {{language}}"
   },
-  "boxes_collected": {
-    "num":"boxes collected： {{num}}"
+  "points_earned": {
+    "num":"points earned: {{num}}"
   },
   "box_picked": {
     "colorA":"A green box picked up!",
     "colorB":"A red box picked up!"
   },
   "wrong_type":"Type Error!",
-  "right_type":"Box sorted successfully, 1 point awarded!"
+  "right_type":{
+    "true":"Box from conveyor sorted successfully, 2 points awarded!",
+    "false":"Box sorted successfully, 1 point awarded!"
+  }
 }

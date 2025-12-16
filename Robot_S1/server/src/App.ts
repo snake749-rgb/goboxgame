@@ -1,4 +1,5 @@
 import i18n from "@root/i18n";
+import { t } from "i18next";
 
 console.log("(server)：", i18n.t("welcome_game"));
 console.log("(server)：", i18n.t("welcome_ap"));
@@ -12,6 +13,9 @@ world.useOBB=true;//开启OBB碰撞检测以提升性能
 world.onPlayerJoin(({ entity }) => {
   //玩家积分初始化为0
   (entity as any).score = 0;
+
+  //玩家拿着的箱子的来源是否为传送带
+  (entity as any).fromConveyor = false;
 
   // 禁止跳跃
   entity.player.enableJump = false;
@@ -40,12 +44,15 @@ const boxMaxCount = 10;
 // 设置箱子生成间隔时间 （秒）
 const boxSpawnInterval = 3;
 
-function createBox(){
+function createBox(color?:string, fromConveyor?:boolean) {
   // 检查当前箱子数量
     const currentBoxCount = world.querySelectorAll(".spawned-box").length;
     if (currentBoxCount < boxMaxCount) {
       // 创建一个新的箱子实体
       let aORb=Math.random()<0.5?"mesh/A类货物.vb":"mesh/B类货物.vb";// 随机选择A类或B类货物
+      if(color){// 如果指定颜色则生成对应颜色箱子
+        aORb = color=="绿"?"mesh/A类货物.vb":"mesh/B类货物.vb";
+      }
       
       let boxPosition = new GameVector3(
           Math.random() * 121 + 3,
@@ -61,6 +68,9 @@ function createBox(){
           12,
           Math.random() * 121 + 3
         );
+      }
+      if(fromConveyor){
+        boxPosition = new GameVector3(63.5,10,126.5);// 传送带箱子固定生成在传送带起始位置
       }
       const box=world.createEntity({
         mesh: aORb as any, // 类型断言以避免 TS 报错
@@ -78,14 +88,27 @@ function createBox(){
       (box as any).showEntityName = true as any
       (box as any).nameRadius = 600 as any
       (box as any).nameColor = colorList[aORb][0];
-      (box as any).customName = colorList[aORb][1]+'色标准箱'
+      (box as any).customName = (fromConveyor?'传送带上的':'')+colorList[aORb][1]+'色标准箱'
     }
 }
 world.onTick(({tick}) => {
   // 每隔一段时间生成一个箱子
   if (tick%(Math.floor(boxSpawnInterval*20)) == 0) {// 20 tick 大约等于 1 秒
-    createBox();
+    createBox('',false); // 随机颜色生成箱子
   }
+  if(tick%40 == 0){// 每40 tick 检查一次传送带生成的箱子是否可以解锁掉落
+    if(Math.random()<0.4){// 40% 概率解锁一个传送带箱子
+      createBox('',true); // 生成一个传送带箱子
+    }
+  }
+  world.querySelectorAll(".spawned-box").forEach((box)=>{
+    if(box.position.y<0){// 如果箱子掉落到地面以下则移除
+      box.destroy();
+    }
+    if(box.customName.startsWith('传送带上的') && box.position.z<10){// 传送带箱子到达传送带尽头则移除
+      box.destroy();
+    }
+  });
 });
 
 // 玩家与箱子接触时触发事件
@@ -94,6 +117,9 @@ world.onEntityContact(({entity, other}) => {
 
   // 如果是玩家与箱子接触且玩家还未拿到任何箱子，移除箱子实体并让玩家拿起箱子
   if(entity.mesh=="mesh/和平队长.vb"){// 确保玩家当前没有拿箱子
+    if(other.customName.startsWith('传送带上的')){// 如果箱子是传送带生成的则标记玩家拿到的箱子来源为传送带
+      (entity as any).fromConveyor = true;
+    }
     // 移除箱子实体
     other.destroy();
     // 给玩家更换为拿箱子的 mesh
@@ -106,8 +132,12 @@ world.onEntityContact(({entity, other}) => {
 // 玩家按下空格试图放下货物时，如果在正确的分拣站内则放下货物就得一分
 function rightBoxType(entity: GameEntity){
   // i.如果货物类型与分拣站类型匹配，则货物消失，收集数量+1。
-  entity.player?.directMessage(i18n.t("right_type"));// 提示正确，得分
+  entity.player?.directMessage(i18n.t(("right_type."+((entity as any).fromConveyor)) as any));// 提示正确，得分
   (entity as any).score += 1;// 玩家积分加1
+  if((entity as any).fromConveyor){
+    (entity as any).fromConveyor = false;// 重置货物来源状态
+    (entity as any).score += 1;// 如果货物来源是传送带，额外加1分
+  }
   remoteChannel.sendClientEvent(entity as GamePlayerEntity,`U${((entity as any).score).toString().padStart(4, '0')}`);// 通知客户端更新箱子收集数量
   entity.mesh = "mesh/和平队长.vb" as any; // 放下箱子，恢复为未拿箱子模型
 }
@@ -118,9 +148,15 @@ function wrongBoxType(entity: GameEntity){
   entity.player?.directMessage(i18n.t("wrong_type"));
   remoteChannel.sendClientEvent(entity as GamePlayerEntity,`Wrong`); // 通知客户端显示错误提示
   
+  //记录箱子颜色以重新生成
+  let resetColor = '红';
+  if(entity.mesh[5]=='A'){
+    resetColor = '绿';
+  }
   // 让玩家放下错误类型的箱子，箱子重新掉落
   entity.mesh = "mesh/和平队长.vb" as any; // 放下箱子，恢复为未拿箱子模型
-  createBox();// 重新生成一个箱子，模拟掉落回场景中
+  createBox(resetColor, false);// 重新生成一个箱子，模拟掉落回场景中，但是无论如何都不是传送带来的，否则可能出现传送带箱子互相覆盖的bug
+  (entity as any).fromConveyor = false;// 重置货物来源状态
 }
 
 world.onPlayerJoin(({ entity }) => {

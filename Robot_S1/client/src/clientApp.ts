@@ -45,7 +45,7 @@ brandtext.parent = brand; //文字在挂牌上
 brandtext.textColor.x = 0;
 brandtext.textColor.y = 0;
 brandtext.textColor.z = 255;
-brandtext.textContent = i18n.t("boxes_collected.num", { num: 0 }); //初始为0个箱子
+brandtext.textContent = i18n.t("points_earned.num", { num: 0 }); //初始为0个箱子
 brandtext.textFontSize = 20;
 brandtext.position.offset.x = 10;
 brandtext.position.offset.y = 30;
@@ -69,7 +69,7 @@ middleWarning.textYAlignment = "Center";
 remoteChannel.events.on("client",(event)=>{
   if(event[0]=="U"){
     // 更新界面显示
-    brandtext.textContent = i18n.t("boxes_collected.num", { num: Math.round(event.slice(1,5)) })
+    brandtext.textContent = i18n.t("points_earned.num", { num: Math.round(event.slice(1,5)) })
   }
   else if(event[0]=="W"){
     // 显示类型错误信息

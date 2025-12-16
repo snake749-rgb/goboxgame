@@ -4,13 +4,16 @@
   "navigator": {
     "language": "你的浏览器使用语言是：{{language}}"
   },
-  "boxes_collected": {
-    "num":"已收集箱子： {{num}}"
+  "points_earned": {
+    "num":"总分： {{num}}"
   },
   "box_picked": {
     "colorA":"捡起了一个绿色箱子！",
     "colorB":"捡起了一个红色箱子！"
   },
   "wrong_type":"类型错误！",
-  "right_type":"成功分拣了一个箱子,获得了1分！"
+  "right_type":{
+    "true":"来自传送带的箱子分拣成功，获得了2分！",
+    "false":"成功分拣了一个箱子,获得了1分！"
+  }
 }
