@@ -27,6 +27,7 @@ const getNavigatorLanguage = () => {
     // @ts-ignore
     return navigator.language;
   }
+  // 服务端环境没有 navigator，默认英文
   return "en";
 };
 

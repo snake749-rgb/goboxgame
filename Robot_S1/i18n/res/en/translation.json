@@ -15,5 +15,15 @@
   "right_type":{
     "true":"Box from conveyor sorted successfully, 2 points awarded!",
     "false":"Box sorted successfully, 1 point awarded!"
+  },
+  "task_description":"Task Description:",
+  "task_progress":"Task Progress:",
+  "task_time":"Time Remaining:",
+  "task_failed":"Limited time task Failed!\nYou assigned a new task.",
+  "task_completed":"Task Completed and new task assigned!\nYou earned extra {{num}} points!",
+  "tasks":{
+    "1":"Sort {{num}} green boxes",
+    "2":"Sort {{num}} red boxes",
+    "3":"Sort {{num}} boxes within {{time}} seconds"
   }
 }

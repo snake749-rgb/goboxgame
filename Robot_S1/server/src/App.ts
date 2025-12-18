@@ -1,8 +1,16 @@
 import i18n from "@root/i18n";
-import { t } from "i18next";
 
 console.log("(server)：", i18n.t("welcome_game"));
 console.log("(server)：", i18n.t("welcome_ap"));
+// 规范化语言代码（如 en_US -> en-US），并按需保存到玩家实体上。这是为了让服务端代码也能够根据玩家语言进行响应。（初始设定里面没有这个！建议之后加上！@开发者）
+function normalizeLang(l: any): string {
+  if (!l || typeof l !== "string") return "en";
+  return l.split(".")[0].replace("_", "-");
+}
+
+remoteChannel.onServerEvent(({ entity, args }) => {
+  (entity as any).lang = normalizeLang(args);
+});
 
 world.addCollisionFilter('player','player');//关闭玩家碰撞
 world.useOBB=true;//开启OBB碰撞检测以提升性能
@@ -11,11 +19,13 @@ world.useOBB=true;//开启OBB碰撞检测以提升性能
 // 当有任何新玩家(onPlayerJoin)加入这个世界(world)时，
 // 我们就执行括号里的操作
 world.onPlayerJoin(({ entity }) => {
+  const changedEntity = entity as unknown as any;
+
   //玩家积分初始化为0
-  (entity as any).score = 0;
+  changedEntity.score = 0;
 
   //玩家拿着的箱子的来源是否为传送带
-  (entity as any).fromConveyor = false;
+  changedEntity.fromConveyor = false;
 
   // 禁止跳跃
   entity.player.enableJump = false;
@@ -23,7 +33,7 @@ world.onPlayerJoin(({ entity }) => {
   // 从场景中查找机器人实体并复制它的 mesh
   const source = world.querySelector("#和平队长-1"); // 机器人暂定和平队长）））
   if (source) {
-    (entity as any).mesh = (source as any).mesh; // 带类型断言以避免 TS 报错
+    changedEntity.mesh = (source as any).mesh; // 带类型断言以避免 TS 报错
   }
   
   // 玩家大小
@@ -37,6 +47,74 @@ world.onPlayerJoin(({ entity }) => {
   let playerSpeed = 0.6;
   entity.player.walkSpeed = entity.player.runSpeed = playerSpeed;
   // 潜行速度设置无效，可能是引擎问题
+});
+
+world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
+  const changedEntity = entity as unknown as any;
+  changedEntity.task = [0,0,0,-1,-1] as [number,number,number,number,number];
+  // 任务格式：
+  // [任务类型编号（1：绿箱子，2：红箱子，3：限时任务），
+  // 任务具体所需进度（在一定范围内的随机数），
+  // 玩家进度，
+  // 任务总时间（秒）（如果是限时任务），
+  // 任务剩余时间（秒）（如果是限时任务）]
+  changedEntity.task[0] = Math.floor(Math.random()*2+1)// 随机生成任务类型，由于是第一次，玩家可能没准备好，不会生成限时任务
+  if(changedEntity.task[0]==1 || changedEntity.task[0]==2){// 非限时任务
+    changedEntity.task[1] = Math.floor(Math.random()*3+6);// 任务目标数量 6-8 个
+  }
+  /*
+  else{// 限时任务
+    changedEntity.task[1] = Math.floor(Math.random()*3+5);// 任务目标数量 5-7 个
+    changedEntity.task[3] = 60;// 任务时间 60 秒
+    changedEntity.task[4] = changedEntity.task[3];
+  }
+  */
+  //注意！！为了调整游戏平衡，任务参数在这里经过了修改！！
+  while (true) {
+    await sleep(1000); // 每隔1秒检查一次任务状态
+    // 发送任务进度更新到客户端
+    remoteChannel.sendClientEvent(entity as GamePlayerEntity,`T${changedEntity.task[0]}${(changedEntity.task[1].toString().padStart(2, '0'))}${changedEntity.task[2].toString().padStart(2, '0')}${changedEntity.task[3].toString().padStart(3, '0')}${changedEntity.task[4].toString().padStart(3, '0')}`);
+    if (changedEntity.task[2] >= changedEntity.task[1]) {
+      // 任务完成，分配新任务
+      entity.player.dialog({
+        type: GameDialogType.TEXT,
+        content: i18n.t("task_completed", { num: 20, lng: (entity as any).lang || "zh-CN" })// 任务完成奖励20分（100分太多了故改为20分）
+      })
+      changedEntity.score += 20;
+      remoteChannel.sendClientEvent(entity as GamePlayerEntity,`U${changedEntity.score.toString().padStart(4, '0')}`);// 通知客户端更新积分显示
+    }
+    //else if 允许玩家卡点完成限时任务
+    else if(changedEntity.task[0]==3){// 限时任务
+      changedEntity.task[4] -= 1;
+      if(changedEntity.task[4]<=0){
+        // 任务失败，分配新任务
+        entity.player.dialog({
+          type: GameDialogType.TEXT,
+          content: i18n.t("task_failed", { lng: (entity as any).lang || "zh-CN" })
+        })
+      }
+      else{
+        continue; // 任务未完成，继续等待
+      }
+    }
+    else{
+      continue; // 任务未完成，继续等待
+    }
+    // 分配新任务
+    changedEntity.task[0] = Math.floor(Math.random()*3+1);// 随机生成任务类型
+    if(changedEntity.task[0]==1 || changedEntity.task[0]==2){// 非限时任务
+      changedEntity.task[1] = Math.floor(Math.random()*3+6);// 任务目标数量 6-8 个
+      changedEntity.task[2] = 0; // 重置任务进度
+      changedEntity.task[3] = -1;
+      changedEntity.task[4] = -1;
+    }
+    else{// 限时任务
+      changedEntity.task[1] = Math.floor(Math.random()*3+5);// 任务目标数量 5-7 个
+      changedEntity.task[2] = 0; // 重置任务进度
+      changedEntity.task[3] = 60;// 任务时间 60 秒
+      changedEntity.task[4] = changedEntity.task[3];
+    }
+  }
 });
 
 // 设置箱子生成数量限制
@@ -101,14 +179,16 @@ world.onTick(({tick}) => {
       createBox('',true); // 生成一个传送带箱子
     }
   }
-  world.querySelectorAll(".spawned-box").forEach((box)=>{
-    if(box.position.y<0){// 如果箱子掉落到地面以下则移除
-      box.destroy();
-    }
-    if(box.customName.startsWith('传送带上的') && box.position.z<10){// 传送带箱子到达传送带尽头则移除
-      box.destroy();
-    }
-  });
+  if(tick%30 == 0){// 每30 tick 检查一次场景中的箱子状态， 之所以不每个 tick 都检查是为了提升性能（不然真的很卡>_<）
+    world.querySelectorAll(".spawned-box").forEach((box)=>{
+      if(box.position.y<0){// 如果箱子掉落到地面以下则移除
+        box.destroy();
+      }
+      if(box.customName.startsWith('传送带上的') && box.position.z<10){// 传送带箱子到达传送带尽头则移除
+        box.destroy();
+      }
+    });
+  }
 });
 
 // 玩家与箱子接触时触发事件
@@ -125,27 +205,33 @@ world.onEntityContact(({entity, other}) => {
     // 给玩家更换为拿箱子的 mesh
     entity.mesh = ("mesh/和平队长"+other.mesh[5]+".vb") as any; // 根据箱子类型更换为对应的拿箱子模型
     // 告诉玩家收集到了一个箱子
-    entity.player?.directMessage(i18n.t(("box_picked.color"+other.mesh[5]) as any));
+    entity.player?.directMessage(i18n.t(("box_picked.color"+other.mesh[5]) as any, { lng: (entity as any).lang || "zh-CN" }));
   }
 });
 
 // 玩家按下空格试图放下货物时，如果在正确的分拣站内则放下货物就得一分
 function rightBoxType(entity: GameEntity){
+  const changedEntity = entity as unknown as any;
   // i.如果货物类型与分拣站类型匹配，则货物消失，收集数量+1。
-  entity.player?.directMessage(i18n.t(("right_type."+((entity as any).fromConveyor)) as any));// 提示正确，得分
-  (entity as any).score += 1;// 玩家积分加1
-  if((entity as any).fromConveyor){
-    (entity as any).fromConveyor = false;// 重置货物来源状态
-    (entity as any).score += 1;// 如果货物来源是传送带，额外加1分
+  entity.player?.directMessage(i18n.t(("right_type."+changedEntity.fromConveyor) as any, { lng: (entity as any).lang || "zh-CN" }));// 提示正确，得分
+  changedEntity.score += 1;// 玩家积分加1
+  if((changedEntity.task[0]==1 && entity.mesh=="mesh/和平队长A.vb") ||
+      (changedEntity.task[0]==2 && entity.mesh=="mesh/和平队长B.vb") ||
+      changedEntity.task[0]==3){// 任务进度加1
+    changedEntity.task[2] += 1;
   }
-  remoteChannel.sendClientEvent(entity as GamePlayerEntity,`U${((entity as any).score).toString().padStart(4, '0')}`);// 通知客户端更新箱子收集数量
+  if(changedEntity.fromConveyor){
+    changedEntity.fromConveyor = false;// 重置货物来源状态
+    changedEntity.score += 1;// 如果货物来源是传送带，额外加1分
+  }
+  remoteChannel.sendClientEvent(entity as GamePlayerEntity,`U${changedEntity.score.toString().padStart(4, '0')}`);// 通知客户端更新箱子收集数量
   entity.mesh = "mesh/和平队长.vb" as any; // 放下箱子，恢复为未拿箱子模型
 }
 
 // 否则提示错误并让货物掉落回场景中
 function wrongBoxType(entity: GameEntity){
   //ii.如果不匹配，则在屏幕中央显示红色错误提示“类型错误！”，货物掉落回场景中，可重新拾取。
-  entity.player?.directMessage(i18n.t("wrong_type"));
+  entity.player?.directMessage(i18n.t("wrong_type", { lng: (entity as any).lang || "zh-CN" }));
   remoteChannel.sendClientEvent(entity as GamePlayerEntity,`Wrong`); // 通知客户端显示错误提示
   
   //记录箱子颜色以重新生成
