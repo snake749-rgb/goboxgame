@@ -125,6 +125,20 @@ text3.textXAlignment = "Left";
 text3.textYAlignment = "Top";
 text3.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
 
+const text4 = UiText.create();//任务限时文字（仅限部分任务）
+text4.zIndex = 1;
+text4.parent = ui;
+text4.textColor.x = 0;
+text4.textColor.y = 0;
+text4.textColor.z = 0;
+text4.textContent = `${i18n.t("little_hint")}`;
+text4.textFontSize = 20;
+text4.position.offset.x = 620;
+text4.position.offset.y = 0;
+text4.textXAlignment = "Center";
+text4.textYAlignment = "Center";
+text4.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+
 //中心类型错误提示信息
 const middleWarning = UiText.create();
 middleWarning.zIndex = 1;

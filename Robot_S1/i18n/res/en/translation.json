@@ -25,5 +25,9 @@
     "1":"Sort {{num}} green boxes",
     "2":"Sort {{num}} red boxes",
     "3":"Sort {{num}} boxes within {{time}} seconds"
-  }
+  },
+  "auto_locating":"Auto-locating to the nearest conveyor box...",
+  "cannot_auto_locate":"Cannot auto-locate while already holding a box!",
+  "no_conveyor_box_found":"No conveyor box nearby to locate!",
+  "little_hint":"Press E to quickly locate the nearest conveyor box!"
 }

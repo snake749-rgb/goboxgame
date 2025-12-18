@@ -2,7 +2,7 @@ import i18n from "@root/i18n";
 
 console.log("(server)：", i18n.t("welcome_game"));
 console.log("(server)：", i18n.t("welcome_ap"));
-// 规范化语言代码（如 en_US -> en-US），并按需保存到玩家实体上。这是为了让服务端代码也能够根据玩家语言进行响应。（初始设定里面没有这个！建议之后加上！@开发者）
+// 规范化语言代码（如 en_US -> en-US），并按需保存到玩家实体上。这是为了让服务端代码也能够根据玩家语言进行响应。（初始设定里面没有这个！建议之后加上！@开发者）当然App之后要使用i18n.t时也要传入对应的语言参数lng。
 function normalizeLang(l: any): string {
   if (!l || typeof l !== "string") return "en";
   return l.split(".")[0].replace("_", "-");
@@ -26,6 +26,9 @@ world.onPlayerJoin(({ entity }) => {
 
   //玩家拿着的箱子的来源是否为传送带
   changedEntity.fromConveyor = false;
+
+  // 玩家是否正在自动寻找传送带箱子
+  changedEntity.searchingAutoBox = false;
 
   // 禁止跳跃
   entity.player.enableJump = false;
@@ -246,27 +249,67 @@ function wrongBoxType(entity: GameEntity){
 }
 
 world.onPlayerJoin(({ entity }) => {
-    entity.player.onKeyUp(({ keyCode }) => {
-        if (keyCode != 32) return; // 32 是空格键的 keyCode
-        if (entity.mesh == "mesh/和平队长.vb") return;// 玩家当前没有拿箱子，直接返回
-        // 检查玩家是否在分拣站区域内
-        const pos = entity.position;
-        if (pos.x >= 0 && pos.x <= 10 && pos.z >= 0 && pos.z <= 10) {
-          // 在 A 类分拣站放下箱子
-          if(entity.mesh=="mesh/和平队长A.vb"){
-            rightBoxType(entity);
+    entity.player.onKeyUp(async ({ keyCode }) => {
+        if (keyCode == 32){ // 32 是空格键的 keyCode
+          if (entity.mesh == "mesh/和平队长.vb") return;// 玩家当前没有拿箱子，直接返回
+          // 检查玩家是否在分拣站区域内
+          const pos = entity.position;
+          if (pos.x >= 0 && pos.x <= 10 && pos.z >= 0 && pos.z <= 10) {
+            // 在 A 类分拣站放下箱子
+            if(entity.mesh=="mesh/和平队长A.vb"){
+              rightBoxType(entity);
+            }
+            else{
+              wrongBoxType(entity);
+            }
+          } else if (pos.x >= 117 && pos.x <= 127 && pos.z >= 117 && pos.z <= 127) {
+            // 在 B 类分拣站放下箱子
+            if(entity.mesh=="mesh/和平队长B.vb"){
+              rightBoxType(entity);
+            }
+            else{
+              wrongBoxType(entity);
+            }
           }
-          else{
-            wrongBoxType(entity);
+        }
+        else if(keyCode==69 && !(entity as any).searchingAutoBox){// E键自动定位到最近的传送带货物
+          if(entity.mesh != "mesh/和平队长.vb"){// 玩家当前拿着箱子则不能自动定位
+            entity.player.directMessage(i18n.t("cannot_auto_locate", { lng: (entity as any).lang || "zh-CN" }));
+            return;
           }
-        } else if (pos.x >= 117 && pos.x <= 127 && pos.z >= 117 && pos.z <= 127) {
-          // 在 B 类分拣站放下箱子
-          if(entity.mesh=="mesh/和平队长B.vb"){
-            rightBoxType(entity);
-          }
-          else{
-            wrongBoxType(entity);
-          }
+          (entity as any).searchingAutoBox = true;
+          entity.player.directMessage(i18n.t("auto_locating", { lng: (entity as any).lang || "zh-CN" }));
+          //while(entity.mesh == "mesh/和平队长.vb"){
+            entity.velocity = new GameVector3(0,0,0);// 静止
+            let mindist = 1000;
+            let nearestBox = entity as any;//随便赋值一下
+            world.querySelectorAll(".spawned-box").forEach(async(box)=>{
+              if(box.customName.startsWith('传送带上的')){// 只考虑传送带生成的箱子
+                let dist = entity.position.distance(box.position);
+                if(dist<mindist){
+                  mindist = dist;
+                  nearestBox = box;
+                }
+              }
+            })
+            if(mindist==1000){// 没有找到传送带箱子
+              entity.player.directMessage(i18n.t("no_conveyor_box_found", { lng: (entity as any).lang || "zh-CN" }));
+            (entity as any).searchingAutoBox = false;
+              return;
+            }
+            console.log("最近传送带箱子距离：", mindist);
+            entity.velocity = new GameVector3(0,0,0);// 清除速度避免冲突
+            function subtract(a: GameVector3, b: GameVector3): GameVector3 {
+              return new GameVector3(a.x - b.x, a.y - b.y, a.z - b.z);
+            }
+            while(entity.mesh == "mesh/和平队长.vb"){// 每次移动一段时间后重新计算距离和方向，避免越过箱子
+              let direction = subtract(nearestBox.position, entity.position).normalize();
+              entity.velocity = new GameVector3(direction.x * mindist / 6, direction.y * mindist / 6, direction.z * mindist / 6);// 设置速度向量，速度与距离成正比
+              await sleep(400);// 等待 400 毫秒
+              mindist = entity.position.distance(nearestBox.position);
+            }
+          //}
+          (entity as any).searchingAutoBox = false;
         }
     })
 })
