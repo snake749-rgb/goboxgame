@@ -307,6 +307,12 @@ world.onPlayerJoin(({ entity }) => {
               entity.velocity = new GameVector3(direction.x * mindist / 6, direction.y * mindist / 6, direction.z * mindist / 6);// 设置速度向量，速度与距离成正比
               await sleep(400);// 等待 400 毫秒
               mindist = entity.position.distance(nearestBox.position);
+              if(nearestBox.destroyed){// 箱子被销毁则停止自动寻找，可能被其他玩家捡走了，也可能到传送带尽头销毁了，还可能是玩家自己捡走了
+                if(entity.mesh == "mesh/和平队长.vb"){// 玩家还没捡箱子才提示取消
+                  entity.player.directMessage(i18n.t("auto_locate_canceled", { lng: (entity as any).lang || "zh-CN" }));
+                  break;
+                }
+              }
             }
           //}
           (entity as any).searchingAutoBox = false;
