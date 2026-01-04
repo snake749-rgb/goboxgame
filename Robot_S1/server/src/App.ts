@@ -151,6 +151,9 @@ function createBox(color?:string, fromConveyor?:boolean) {
         if(boxPosition.x+boxPosition.z<230 && boxPosition.x+boxPosition.z>22){// 避免生成在分拣站内部
           break;
         }
+        if(boxPosition.x>63 && boxPosition.x<68 && boxPosition.z>59 && boxPosition.z<68){// 避免生成在通用分拣站内部
+          break;
+        }
         boxPosition = new GameVector3(
           Math.random() * 121 + 3,
           12,
@@ -254,6 +257,25 @@ function wrongBoxType(entity: GameEntity){
   createBox(resetColor, false);// 重新生成一个箱子，模拟掉落回场景中，但是无论如何都不是传送带来的，否则可能出现传送带箱子互相覆盖的bug
   (entity as any).fromConveyor = false;// 重置货物来源状态
 }
+
+// 创建通用分拣站区域
+const genericSortingStationArea = world.addZone({
+  selector: "player", // 检测玩家实体
+  bounds: new GameBounds3(
+    new GameVector3(59, 8, 59), // 区域低处顶点坐标
+    new GameVector3(68, 15, 68) // 区域高处顶点坐标
+  ) // 设置区域范围
+});
+
+genericSortingStationArea.onEnter(({ entity }) => {
+  const changedEntity = entity as unknown as any;
+  if(entity.mesh=="mesh/和平队长.vb") return;// 玩家当前没有拿箱子，直接返回
+  changedEntity.score += 1;// 玩家积分加1
+  changedEntity.fromConveyor = false;// 重置货物来源状态
+  entity.player?.directMessage(i18n.t("generic_sorting_station", { lng: (entity as any).lang || "zh-CN" }));
+  remoteChannel.sendClientEvent(entity as GamePlayerEntity,`U${changedEntity.score.toString().padStart(4, '0')}`);// 通知客户端更新箱子收集数量
+  entity.mesh = "mesh/和平队长.vb" as any; // 放下箱子，恢复为未拿箱子模型
+});
 
 world.onPlayerJoin(({ entity }) => {
     entity.player.onKeyUp(async ({ keyCode }) => {

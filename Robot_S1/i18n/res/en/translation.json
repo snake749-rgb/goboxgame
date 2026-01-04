@@ -33,5 +33,6 @@
   "auto_locate_canceled":"Auto-locate canceled as the box has been removed!",
   "total_time":"Total time",
   "points_per_minute":"Points per minute",
-  "quests_chain":"Quests Chain"
+  "quests_chain":"Quests Chain",
+  "generic_sorting_station":"Successfully sorted a box at a generic sorting station! +1 point awarded but no task progress."
 }

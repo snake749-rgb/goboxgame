@@ -33,5 +33,6 @@
   "auto_locate_canceled":"由于箱子已被移除，自动定位已取消！",
   "total_time":"总时间",
   "points_per_minute":"每分钟得分",
-  "quests_chain":"任务链"
+  "quests_chain":"任务链",
+  "generic_sorting_station":"在通用分拣站成功分拣了一个箱子！+1分，但没有任务进度。"
 }
