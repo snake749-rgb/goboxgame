@@ -55,6 +55,103 @@ brandtext.position.offset.y = 30;
 brandtext.textXAlignment = "Center";
 brandtext.textYAlignment = "Center";
 
+//左下角效率面板图标
+const efficiency = UiImage.create();
+efficiency.zIndex = 1;
+efficiency.parent = ui;
+efficiency.backgroundOpacity = 0;
+efficiency.size.offset.x = 380;
+efficiency.size.offset.y = 200;
+efficiency.position.offset.x = 0;
+efficiency.position.offset.y = 570;
+efficiency.image = "picture/Eff.png";
+
+//效率面板文字
+const efficiencyText1 = UiText.create();
+efficiencyText1.zIndex = 2;
+efficiencyText1.parent = efficiency; //文字在效率面板上
+efficiencyText1.textColor.x = 255;
+efficiencyText1.textColor.y = 255;
+efficiencyText1.textColor.z = 0;
+efficiencyText1.textFontSize = 20;
+efficiencyText1.position.offset.x = -40;
+efficiencyText1.position.offset.y = 0;
+efficiencyText1.textXAlignment = "Center";
+efficiencyText1.textYAlignment = "Center";
+efficiencyText1.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyText1.textContent = `${i18n.t("total_time")}`;
+
+const efficiencyText2 = UiText.create();
+efficiencyText2.zIndex = 2;
+efficiencyText2.parent = efficiency; //文字在效率面板上
+efficiencyText2.textColor.x = 175;
+efficiencyText2.textColor.y = 255;
+efficiencyText2.textColor.z = 0;
+efficiencyText2.textFontSize = 13;
+efficiencyText2.position.offset.x = 90;
+efficiencyText2.position.offset.y = 0;
+efficiencyText2.textXAlignment = "Center";
+efficiencyText2.textYAlignment = "Center";
+efficiencyText2.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyText2.textContent = `${i18n.t("points_per_minute")}`;
+
+const efficiencyText3 = UiText.create();
+efficiencyText3.zIndex = 2;
+efficiencyText3.parent = efficiency; //文字在效率面板上
+efficiencyText3.textColor.x = 255;
+efficiencyText3.textColor.y = 255;
+efficiencyText3.textColor.z = 0;
+efficiencyText3.textFontSize = 17;
+efficiencyText3.position.offset.x = 220;
+efficiencyText3.position.offset.y = 0;
+efficiencyText3.textXAlignment = "Center";
+efficiencyText3.textYAlignment = "Center";
+efficiencyText3.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyText3.textContent = `${i18n.t("quests_chain")}`;
+
+const efficiencyValue1 = UiText.create();
+efficiencyValue1.zIndex = 2;
+efficiencyValue1.parent = efficiency; //文字在效率面板上
+efficiencyValue1.textColor.x = 255;
+efficiencyValue1.textColor.y = 255;
+efficiencyValue1.textColor.z = 0;
+efficiencyValue1.textFontSize = 20;
+efficiencyValue1.position.offset.x = -40;
+efficiencyValue1.position.offset.y = 140;
+efficiencyValue1.textXAlignment = "Center";
+efficiencyValue1.textYAlignment = "Center";
+efficiencyValue1.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyValue1.textContent = `0 s`;
+
+const efficiencyValue2 = UiText.create();
+efficiencyValue2.zIndex = 2;
+efficiencyValue2.parent = efficiency; //文字在效率面板上
+efficiencyValue2.textColor.x = 175;
+efficiencyValue2.textColor.y = 255;
+efficiencyValue2.textColor.z = 0;
+efficiencyValue2.textFontSize = 20;
+efficiencyValue2.position.offset.x = 90;
+efficiencyValue2.position.offset.y = 140;
+efficiencyValue2.textXAlignment = "Center";
+efficiencyValue2.textYAlignment = "Center";
+efficiencyValue2.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyValue2.textContent = `0`;
+
+const efficiencyValue3 = UiText.create();
+efficiencyValue3.zIndex = 2;
+efficiencyValue3.parent = efficiency; //文字在效率面板上
+efficiencyValue3.textColor.x = 255;
+efficiencyValue3.textColor.y = 255;
+efficiencyValue3.textColor.z = 0;
+efficiencyValue3.textFontSize = 20;
+efficiencyValue3.position.offset.x = 220;
+efficiencyValue3.position.offset.y = 140;
+efficiencyValue3.textXAlignment = "Center";
+efficiencyValue3.textYAlignment = "Center";
+efficiencyValue3.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+efficiencyValue3.textContent = `0`;
+
+
 // 右上角任务图标
 const task = UiImage.create();
 task.zIndex = 1;
@@ -178,5 +275,11 @@ ${Math.round(event.slice(9,12))} (s)`;
       text3.textContent = `${i18n.t("task_time")}
 --`;
     }
+  }
+  else if(event[0]=="E"){
+    // 更新效率面板显示
+    efficiencyValue1.textContent = `${Math.round(event.slice(1,7))} s`;
+    efficiencyValue2.textContent = `${Math.round(event.slice(7,11))}`;
+    efficiencyValue3.textContent = `${Math.round(event.slice(11,14))}`;
   }
 });

@@ -30,5 +30,8 @@
   "cannot_auto_locate":"Cannot auto-locate while already holding a box!",
   "no_conveyor_box_found":"No conveyor box nearby to locate!",
   "little_hint":"Press E to quickly locate the nearest conveyor box!",
-  "auto_locate_canceled":"Auto-locate canceled as the box has been removed!"
+  "auto_locate_canceled":"Auto-locate canceled as the box has been removed!",
+  "total_time":"Total time",
+  "points_per_minute":"Points per minute",
+  "quests_chain":"Quests Chain"
 }

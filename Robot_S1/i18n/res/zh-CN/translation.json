@@ -30,5 +30,8 @@
   "cannot_auto_locate":"已经拿着箱子时无法自动定位！",
   "no_conveyor_box_found":"附近没有传送带箱子可供定位！",
   "little_hint":"按E键快速定位到最近的传送带箱子！",
-  "auto_locate_canceled":"由于箱子已被移除，自动定位已取消！"
+  "auto_locate_canceled":"由于箱子已被移除，自动定位已取消！",
+  "total_time":"总时间",
+  "points_per_minute":"每分钟得分",
+  "quests_chain":"任务链"
 }

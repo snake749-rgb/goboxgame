@@ -23,6 +23,9 @@ world.onPlayerJoin(({ entity }) => {
 
   //玩家积分初始化为0
   changedEntity.score = 0;
+  changedEntity.time=0;// 玩家游戏时间初始化为0
+  //changedEntity.scorePerMinute=0;// 玩家每分钟得分初始化为0 // 该数据可由客户端计算，无需服务端存储
+  changedEntity.questsChain=0;// 玩家任务链数初始化为0
 
   //玩家拿着的箱子的来源是否为传送带
   changedEntity.fromConveyor = false;
@@ -75,9 +78,12 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
   //注意！！为了调整游戏平衡，任务参数在这里经过了修改！！
   while (true) {
     await sleep(1000); // 每隔1秒检查一次任务状态
+    changedEntity.time += 1;// 玩家游戏时间增加1秒
     // 发送任务进度更新到客户端
     remoteChannel.sendClientEvent(entity as GamePlayerEntity,`T${changedEntity.task[0]}${(changedEntity.task[1].toString().padStart(2, '0'))}${changedEntity.task[2].toString().padStart(2, '0')}${changedEntity.task[3].toString().padStart(3, '0')}${changedEntity.task[4].toString().padStart(3, '0')}`);
+    remoteChannel.sendClientEvent(entity as GamePlayerEntity,`E${changedEntity.time.toString().padStart(6,'0')}${Math.floor(changedEntity.score/(changedEntity.time/60)).toString().padStart(4,'0')}${changedEntity.questsChain.toString().padStart(3,'0')}`);// 发送效率面板数据到客户端，每分钟得分记小数点点后两位
     if (changedEntity.task[2] >= changedEntity.task[1]) {
+      changedEntity.questsChain += 1; // 任务链数加1
       // 任务完成，分配新任务
       entity.player.dialog({
         type: GameDialogType.TEXT,
@@ -90,6 +96,7 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
     else if(changedEntity.task[0]==3){// 限时任务
       changedEntity.task[4] -= 1;
       if(changedEntity.task[4]<=0){
+        changedEntity.questsChain=0;// 任务链数清零
         // 任务失败，分配新任务
         entity.player.dialog({
           type: GameDialogType.TEXT,
