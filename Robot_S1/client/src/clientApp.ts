@@ -54,6 +54,7 @@ brandtext.position.offset.x = 10;
 brandtext.position.offset.y = 30;
 brandtext.textXAlignment = "Center";
 brandtext.textYAlignment = "Center";
+brandtext.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
 
 //左下角效率面板图标
 const efficiency = UiImage.create();
@@ -236,6 +237,45 @@ text4.textXAlignment = "Center";
 text4.textYAlignment = "Center";
 text4.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
 
+// 右下角仓库空间提示文字
+const spacePic = UiImage.create();
+spacePic.zIndex = 1;
+spacePic.parent = ui;
+spacePic.size.offset.x = 400;
+spacePic.size.offset.y = 200;
+spacePic.position.offset.x = 1050;
+spacePic.position.offset.y = 570;
+spacePic.image = "picture/Space.png";
+
+//仓库空间提示文字
+const spaceText1 = UiText.create();
+spaceText1.zIndex = 2;
+spaceText1.parent = spacePic; //文字在界面上
+spaceText1.textColor.x = 0;
+spaceText1.textColor.y = 255;
+spaceText1.textColor.z = 0;
+spaceText1.textContent = `0/10`;
+spaceText1.textFontSize = 30;
+spaceText1.position.offset.x = 5;
+spaceText1.position.offset.y = 140;
+spaceText1.textXAlignment = "Center";
+spaceText1.textYAlignment = "Center";
+spaceText1.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+
+const spaceText2 = UiText.create();
+spaceText2.zIndex = 2;
+spaceText2.parent = spacePic; //文字在界面上
+spaceText2.textColor.x = 255;
+spaceText2.textColor.y = 0;
+spaceText2.textColor.z = 0;
+spaceText2.textContent = `0/10`;
+spaceText2.textFontSize = 30;
+spaceText2.position.offset.x = 195;
+spaceText2.position.offset.y = 140;
+spaceText2.textXAlignment = "Center";
+spaceText2.textYAlignment = "Center";
+spaceText2.textFontFamily = UITextFontFamily.CodeNewRomanBold; // 使用等宽粗体字体
+
 //中心类型错误提示信息
 const middleWarning = UiText.create();
 middleWarning.zIndex = 1;
@@ -281,5 +321,32 @@ ${Math.round(event.slice(9,12))} (s)`;
     efficiencyValue1.textContent = `${Math.round(event.slice(1,7))} s`;
     efficiencyValue2.textContent = `${Math.round(event.slice(7,11))}`;
     efficiencyValue3.textContent = `${Math.round(event.slice(11,14))}`;
+  }
+  else if(event[0]=="F"){
+    // 仓库已满提示
+    middleWarning.textContent = i18n.t("warehouse_full");
+    setTimeout(() => {
+      middleWarning.textContent = "";
+    }, 2000); // 2秒后清除提示信息
+  }
+  else if(event[0]=="X"){
+    // 更新仓库储量显示
+    spaceText1.textContent = `${Math.round(event.slice(1,3))}/10`;
+    spaceText2.textContent = `${Math.round(event.slice(3,5))}/10`;
+  }
+  else if(event[0]=="A"){
+    // 提示仓库重新清空
+    middleWarning.textContent = i18n.t("warehouse_cleared");
+    middleWarning.textColor.x = 0;
+    middleWarning.textColor.y = 255;
+    middleWarning.textColor.z = 0;
+    middleWarning.textFontSize = 40;
+    setTimeout(() => {
+      middleWarning.textContent = "";
+      middleWarning.textColor.x = 255;
+      middleWarning.textColor.y = 0;
+      middleWarning.textColor.z = 0;
+      middleWarning.textFontSize = 100;
+    }, 2000); // 2秒后清除提示信息
   }
 });

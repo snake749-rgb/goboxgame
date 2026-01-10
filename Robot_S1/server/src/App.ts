@@ -55,6 +55,8 @@ world.onPlayerJoin(({ entity }) => {
   // 潜行速度设置无效，可能是引擎问题
 });
 
+let wareHouse = [0,0]// 仓库中绿箱子和红箱子的数量，上限10个
+
 world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
   const changedEntity = entity as unknown as any;
   changedEntity.task = [0,0,0,-1,-1] as [number,number,number,number,number];
@@ -175,11 +177,12 @@ function createBox(color?:string, fromConveyor?:boolean) {
         friction: 0.8
       });
       const colorList={"mesh/A类货物.vb":[new GameRGBColor(0, 0.5, 0),'绿'],"mesh/B类货物.vb":[new GameRGBColor(1,0.4,0.00),'红']} as {[key: string]: [GameRGBColor,string]};
+      const colorListEng={"mesh/A类货物.vb":[new GameRGBColor(0, 0.5, 0),'Green'],"mesh/B类货物.vb":[new GameRGBColor(1,0.4,0.00),'Red']} as {[key: string]: [GameRGBColor,string]};
       // 设置箱子名称显示
       (box as any).showEntityName = true as any
       (box as any).nameRadius = 600 as any
       (box as any).nameColor = colorList[aORb][0];
-      (box as any).customName = (fromConveyor?'传送带上的':'')+colorList[aORb][1]+'色标准箱'
+      (box as any).customName = (fromConveyor?'传送带上的':'')+colorList[aORb][1]+'色标准箱 / '+colorListEng[aORb][1]+' box'+(fromConveyor?' from conveyor':'')
     }
 }
 world.onTick(({tick}) => {
@@ -200,6 +203,15 @@ world.onTick(({tick}) => {
       if(box.customName.startsWith('传送带上的') && box.position.z<10){// 传送带箱子到达传送带尽头则移除
         box.destroy();
       }
+    });
+  }
+  if(tick%20 == 0){// 每20 tick 更新一次仓库储量UI
+    remoteChannel.sendClientEvent(world.querySelectorAll('player'),`X${wareHouse[0].toString().padStart(2, '0')}${wareHouse[1].toString().padStart(2, '0')}`);// 通知客户端更新仓库储量显示
+  }
+  if((tick-1)%1200 == 0){// 每1200 tick （约1分钟）清空仓库储量
+    wareHouse = [0,0];
+    world.querySelectorAll('player').forEach((p)=>{
+      remoteChannel.sendClientEvent(p as GamePlayerEntity,`AgainEmpty`); // 通知客户端显示仓库清空提示
     });
   }
 });
@@ -225,6 +237,16 @@ world.onEntityContact(({entity, other}) => {
 // 玩家按下空格试图放下货物时，如果在正确的分拣站内则放下货物就得一分
 function rightBoxType(entity: GameEntity){
   const changedEntity = entity as unknown as any;
+  if(wareHouse[0]>=10 && entity.mesh=="mesh/和平队长A.vb" || wareHouse[1]>=10 && entity.mesh=="mesh/和平队长B.vb"){// 仓库已满
+    remoteChannel.sendClientEvent(entity as GamePlayerEntity,`Full`); // 通知客户端显示仓库已满提示
+    return;
+  }
+  if(entity.mesh=="mesh/和平队长A.vb"){
+    wareHouse[0] += 1;
+  }
+  else if(entity.mesh=="mesh/和平队长B.vb"){
+    wareHouse[1] += 1;
+  }
   // i.如果货物类型与分拣站类型匹配，则货物消失，收集数量+1。
   entity.player?.directMessage(i18n.t(("right_type."+changedEntity.fromConveyor) as any, { lng: (entity as any).lang || "zh-CN" }));// 提示正确，得分
   changedEntity.score += 1;// 玩家积分加1
