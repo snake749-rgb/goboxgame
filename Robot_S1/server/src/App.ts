@@ -1,4 +1,5 @@
 import i18n from "@root/i18n";
+import { changeLanguage } from "i18next";
 
 console.log("(server)：", i18n.t("welcome_game"));
 console.log("(server)：", i18n.t("welcome_ap"));
@@ -61,7 +62,7 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
   const changedEntity = entity as unknown as any;
   changedEntity.task = [0,0,0,-1,-1] as [number,number,number,number,number];
   // 任务格式：
-  // [任务类型编号（1：绿箱子，2：红箱子，3：限时任务），
+  // [任务类型编号（1：绿箱子，2：红箱子，3：限时任务，4：无错误收集，5：通用分拣站收集），
   // 任务具体所需进度（在一定范围内的随机数），
   // 玩家进度，
   // 任务总时间（秒）（如果是限时任务），
@@ -109,22 +110,47 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
         continue; // 任务未完成，继续等待
       }
     }
+    else if(changedEntity.task[0]==4){// 无错误收集任务
+      if(changedEntity.task[2]<=0){// 任务失败，进度-1
+        changedEntity.questsChain=0;// 任务链数清零
+        // 任务失败，分配新任务
+        entity.player.dialog({
+          type: GameDialogType.TEXT,
+          content: i18n.t("task_failed", { lng: (entity as any).lang || "zh-CN" })
+        })
+      }
+      else{
+        continue; // 任务未完成，继续等待
+      }
+    }
     else{
       continue; // 任务未完成，继续等待
     }
     // 分配新任务
-    changedEntity.task[0] = Math.floor(Math.random()*3+1);// 随机生成任务类型
+    changedEntity.task[0] = Math.floor(Math.random()*5+1);// 随机生成任务类型
     if(changedEntity.task[0]==1 || changedEntity.task[0]==2){// 非限时任务
       changedEntity.task[1] = Math.floor(Math.random()*3+6);// 任务目标数量 6-8 个
       changedEntity.task[2] = 0; // 重置任务进度
       changedEntity.task[3] = -1;
       changedEntity.task[4] = -1;
     }
-    else{// 限时任务
-      changedEntity.task[1] = Math.floor(Math.random()*3+5);// 任务目标数量 5-7 个
+    else if (changedEntity.task[0] == 3) {// 限时任务
+      changedEntity.task[1] = Math.floor(Math.random()*2+4);// 任务目标数量 4-5 个
       changedEntity.task[2] = 0; // 重置任务进度
       changedEntity.task[3] = 60;// 任务时间 60 秒
       changedEntity.task[4] = changedEntity.task[3];
+    }
+    else if(changedEntity.task[0]==4){// 无错误收集任务
+      changedEntity.task[1] = Math.floor(Math.random()*4+7);// 任务目标数量 7-10 个
+      changedEntity.task[2] = 0; // 重置任务进度
+      changedEntity.task[3] = -1;
+      changedEntity.task[4] = -1;
+    }
+    else if(changedEntity.task[0]==5){// 通用分拣站收集任务
+      changedEntity.task[1] = Math.floor(Math.random()*4+7);// 任务目标数量 7-10 个
+      changedEntity.task[2] = 0; // 重置任务进度
+      changedEntity.task[3] = -1;
+      changedEntity.task[4] = -1;
     }
   }
 });
@@ -252,7 +278,7 @@ function rightBoxType(entity: GameEntity){
   changedEntity.score += 1;// 玩家积分加1
   if((changedEntity.task[0]==1 && entity.mesh=="mesh/和平队长A.vb") ||
       (changedEntity.task[0]==2 && entity.mesh=="mesh/和平队长B.vb") ||
-      changedEntity.task[0]==3){// 任务进度加1
+      changedEntity.task[0]==3 || changedEntity.task[0]==4){// 任务进度加1
     changedEntity.task[2] += 1;
   }
   if(changedEntity.fromConveyor){
@@ -265,10 +291,13 @@ function rightBoxType(entity: GameEntity){
 
 // 否则提示错误并让货物掉落回场景中
 function wrongBoxType(entity: GameEntity){
+  const changedEntity = entity as unknown as any;
   //ii.如果不匹配，则在屏幕中央显示红色错误提示“类型错误！”，货物掉落回场景中，可重新拾取。
   entity.player?.directMessage(i18n.t("wrong_type", { lng: (entity as any).lang || "zh-CN" }));
   remoteChannel.sendClientEvent(entity as GamePlayerEntity,`Wrong`); // 通知客户端显示错误提示
-  
+  if(changedEntity.task[0]==4){// 无错误收集任务进度为负（失败标志）
+    changedEntity.task[2]=-1;
+  }
   //记录箱子颜色以重新生成
   let resetColor = '红';
   if(entity.mesh[5]=='A'){
@@ -292,6 +321,9 @@ const genericSortingStationArea = world.addZone({
 genericSortingStationArea.onEnter(({ entity }) => {
   const changedEntity = entity as unknown as any;
   if(entity.mesh=="mesh/和平队长.vb") return;// 玩家当前没有拿箱子，直接返回
+  if(changedEntity.task[0]==5){// 通用分拣站任务进度加1
+    changedEntity.task[2] += 1;
+  }
   changedEntity.score += 1;// 玩家积分加1
   changedEntity.fromConveyor = false;// 重置货物来源状态
   entity.player?.directMessage(i18n.t("generic_sorting_station", { lng: (entity as any).lang || "zh-CN" }));

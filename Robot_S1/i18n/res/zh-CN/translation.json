@@ -19,7 +19,7 @@
   "task_description":"任务描述：",
   "task_progress":"任务进度：",
   "task_time":"剩余时间：",
-  "task_failed":"限时任务失败！\n你被分配了一个新任务。",
+  "task_failed":"任务失败！\n你被分配了一个新任务。",
   "task_completed":"任务完成，分配了新任务！\n你额外获得了{{num}}分！",
   "tasks":{
     "1":"分拣{{num}}个绿色箱子",
@@ -34,7 +34,7 @@
   "total_time":"总时间",
   "points_per_minute":"每分钟得分",
   "quests_chain":"任务链",
-  "generic_sorting_station":"在通用分拣站成功分拣了一个箱子！+1分，但没有任务进度。",
+  "generic_sorting_station":"在通用分拣站成功分拣了一个箱子！+1分，但没有非通用分拣站任务的任务进度。",
   "warehouse_full":"此仓库已满！",
   "warehouse_cleared":"仓库已被管理员NPC重新清空！"
 }
