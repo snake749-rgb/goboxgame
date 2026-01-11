@@ -69,7 +69,7 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
   // 任务剩余时间（秒）（如果是限时任务）]
   changedEntity.task[0] = Math.floor(Math.random()*2+1)// 随机生成任务类型，由于是第一次，玩家可能没准备好，不会生成限时任务
   if(changedEntity.task[0]==1 || changedEntity.task[0]==2){// 非限时任务
-    changedEntity.task[1] = Math.floor(Math.random()*3+6);// 任务目标数量 6-8 个
+    changedEntity.task[1] = Math.floor(Math.random()*2+4);// 任务目标数量 4-5 个
   }
   /*
   else{// 限时任务
@@ -129,7 +129,7 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
     // 分配新任务
     changedEntity.task[0] = Math.floor(Math.random()*5+1);// 随机生成任务类型
     if(changedEntity.task[0]==1 || changedEntity.task[0]==2){// 非限时任务
-      changedEntity.task[1] = Math.floor(Math.random()*3+6);// 任务目标数量 6-8 个
+      changedEntity.task[1] = Math.floor(Math.random()*2+4);// 任务目标数量 4-5 个
       changedEntity.task[2] = 0; // 重置任务进度
       changedEntity.task[3] = -1;
       changedEntity.task[4] = -1;
@@ -137,17 +137,17 @@ world.onPlayerJoin(async({ entity }) => {// 玩家任务分配
     else if (changedEntity.task[0] == 3) {// 限时任务
       changedEntity.task[1] = Math.floor(Math.random()*2+4);// 任务目标数量 4-5 个
       changedEntity.task[2] = 0; // 重置任务进度
-      changedEntity.task[3] = 60;// 任务时间 60 秒
+      changedEntity.task[3] = 120;// 任务时间 120 秒
       changedEntity.task[4] = changedEntity.task[3];
     }
     else if(changedEntity.task[0]==4){// 无错误收集任务
-      changedEntity.task[1] = Math.floor(Math.random()*4+7);// 任务目标数量 7-10 个
+      changedEntity.task[1] = Math.floor(Math.random()*2+6);// 任务目标数量 6-7 个
       changedEntity.task[2] = 0; // 重置任务进度
       changedEntity.task[3] = -1;
       changedEntity.task[4] = -1;
     }
     else if(changedEntity.task[0]==5){// 通用分拣站收集任务
-      changedEntity.task[1] = Math.floor(Math.random()*4+7);// 任务目标数量 7-10 个
+      changedEntity.task[1] = Math.floor(Math.random()*3+7);// 任务目标数量 7-9 个
       changedEntity.task[2] = 0; // 重置任务进度
       changedEntity.task[3] = -1;
       changedEntity.task[4] = -1;
@@ -263,7 +263,7 @@ world.onEntityContact(({entity, other}) => {
 // 玩家按下空格试图放下货物时，如果在正确的分拣站内则放下货物就得一分
 function rightBoxType(entity: GameEntity){
   const changedEntity = entity as unknown as any;
-  if(wareHouse[0]>=10 && entity.mesh=="mesh/和平队长A.vb" || wareHouse[1]>=10 && entity.mesh=="mesh/和平队长B.vb"){// 仓库已满
+  if(wareHouse[0]>=5 && entity.mesh=="mesh/和平队长A.vb" || wareHouse[1]>=5 && entity.mesh=="mesh/和平队长B.vb"){// 仓库已满
     remoteChannel.sendClientEvent(entity as GamePlayerEntity,`Full`); // 通知客户端显示仓库已满提示
     return;
   }

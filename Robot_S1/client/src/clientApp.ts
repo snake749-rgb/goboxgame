@@ -254,7 +254,7 @@ spaceText1.parent = spacePic; //文字在界面上
 spaceText1.textColor.x = 0;
 spaceText1.textColor.y = 255;
 spaceText1.textColor.z = 0;
-spaceText1.textContent = `0/10`;
+spaceText1.textContent = `0/5`;
 spaceText1.textFontSize = 30;
 spaceText1.position.offset.x = 5;
 spaceText1.position.offset.y = 140;
@@ -268,7 +268,7 @@ spaceText2.parent = spacePic; //文字在界面上
 spaceText2.textColor.x = 255;
 spaceText2.textColor.y = 0;
 spaceText2.textColor.z = 0;
-spaceText2.textContent = `0/10`;
+spaceText2.textContent = `0/5`;
 spaceText2.textFontSize = 30;
 spaceText2.position.offset.x = 195;
 spaceText2.position.offset.y = 140;
@@ -331,8 +331,8 @@ ${Math.round(event.slice(9,12))} (s)`;
   }
   else if(event[0]=="X"){
     // 更新仓库储量显示
-    spaceText1.textContent = `${Math.round(event.slice(1,3))}/10`;
-    spaceText2.textContent = `${Math.round(event.slice(3,5))}/10`;
+    spaceText1.textContent = `${Math.round(event.slice(1,3))}/5`;
+    spaceText2.textContent = `${Math.round(event.slice(3,5))}/5`;
   }
   else if(event[0]=="A"){
     // 提示仓库重新清空
